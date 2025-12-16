@@ -60,7 +60,6 @@ A modern React application for browsing and managing GitHub users with bookmarki
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd final
    ```
 
 2. **Install dependencies**
