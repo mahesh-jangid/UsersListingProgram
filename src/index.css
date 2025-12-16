@@ -1,0 +1,33 @@
+.MuiDataGrid-cell--textLeft {
+  justify-content: center !important;
+}
+
+/* Custom scrollbar styling for blue and attractive appearance */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #1976D2 0%, #1565C0 100%);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-color: #2196F3 #f1f1f1;
+  scrollbar-width: thin;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
