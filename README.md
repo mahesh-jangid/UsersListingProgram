@@ -223,18 +223,6 @@ Bookmarked users are persisted in browser localStorage under the key `github_boo
   - `since`: Integer ID of the last user seen (for infinite scroll pagination)
   - `per_page`: Number of users per page (default: 30)
 
-### API Response Structure
-```json
-[
-  {
-    "id": 1,
-    "login": "mojombo",
-    "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
-    ...
-  }
-]
-```
-
 ## 📜 Available Scripts
 
 ### Development
@@ -303,21 +291,4 @@ const { containerRef, isRefreshing } = usePullToRefresh(onRefresh, threshold);
 - [ ] Add unit and integration tests
 - [ ] Implement virtual scrolling for better performance with large lists
 
-## 📝 License
-
-This project is private and proprietary.
-
-## 👨‍💻 Development Notes
-
-- The application uses Vite for fast development and optimized production builds
-- Redux DevTools Extension is configured for debugging state management
-- The project follows React best practices and modern JavaScript (ES6+) syntax
-- All API calls are handled through Redux thunks for better error handling and state management
-
-## 🤝 Contributing
-
-This is a private project. For questions or suggestions, please contact the project maintainer.
-
----
-
-**Built with ❤️ using React, Redux, and Material-UI**
+ 
