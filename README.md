@@ -157,8 +157,8 @@ final/
 Main component for displaying and managing GitHub users list.
 - Fetches users from GitHub API
 - Implements infinite scroll for automatic pagination
-- Handles pull-to-refresh functionality
-- Provides search with throttling
+- Handles pull-to-refresh functionality (works on scrollable container)
+- Provides search with throttling (300ms delay, case-insensitive)
 - Manages bookmark/unbookmark actions
 
 ### BookmarkedUsersTab
@@ -252,7 +252,13 @@ const throttledFunction = useThrottle(callback, delay);
 ```
 
 ### usePullToRefresh
-Custom hook for implementing pull-to-refresh functionality on mobile devices.
+Custom hook for implementing pull-to-refresh functionality on scrollable containers (mobile-friendly).
+
+**Features:**
+- Works with scrollable containers (not just window scrolling)
+- Checks if container is at the top before allowing pull-to-refresh
+- Provides visual feedback during pull gesture
+- Automatically triggers refresh when threshold is reached
 
 ```javascript
 const { containerRef, isRefreshing } = usePullToRefresh(onRefresh, threshold);
@@ -276,7 +282,8 @@ const { containerRef, isRefreshing } = usePullToRefresh(onRefresh, threshold);
 ## 🐛 Known Limitations
 
 - Search only works on already loaded data (no API search integration)
-- Pull-to-refresh works best on touch devices
+- Pull-to-refresh works on touch devices when the scroll container is at the top
+- Infinite scroll is disabled during active search (to prevent loading irrelevant users)
 - Bookmarked users are stored locally (not synced across devices)
 
 ## 🔮 Future Enhancements

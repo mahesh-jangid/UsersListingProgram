@@ -41,7 +41,15 @@ const UsersTab = () => {
     await dispatch(refreshUsersThunk());
   }, [dispatch]);
 
-  const { containerRef, isRefreshing } = usePullToRefresh(handleRefresh);
+  const { containerRef: pullToRefreshRef, isRefreshing } = usePullToRefresh(handleRefresh);
+  
+  // Merge refs for pull-to-refresh and scroll container
+  const setScrollRef = useCallback((node) => {
+    scrollContainerRef.current = node;
+    if (pullToRefreshRef) {
+      pullToRefreshRef.current = node;
+    }
+  }, [pullToRefreshRef]);
 
   useEffect(() => {
     if (users.length === 0 && !loading) {
@@ -85,13 +93,13 @@ const UsersTab = () => {
   }, [loadingMore, loading, lastUserId, throttledSearchQuery, dispatch]);
 
   return (
-    <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ flexShrink: 0, marginBottom: { xs: 1, sm: 1.5, md: 2 } }}>
         <SearchInput value={searchQuery} onChange={handleSearchChange} />
       </Box>
       
       <Box 
-        ref={scrollContainerRef}
+        ref={setScrollRef}
         sx={{ flex: 1, overflow: 'auto', paddingRight: { xs: '4px', sm: '8px' } }}
         onScroll={handleScroll}
       >

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
  * Custom hook for pull-to-refresh functionality
  * @param {Function} onRefresh - Callback function to call when refresh is triggered
  * @param {number} threshold - Minimum distance to pull before refresh triggers (default: 80)
- * @returns {Object} Object with ref to attach to container and isRefreshing state
+ * @returns {Object} Object with ref to attach to scrollable container and isRefreshing state
  */
 export const usePullToRefresh = (onRefresh, threshold = 80) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -19,7 +19,8 @@ export const usePullToRefresh = (onRefresh, threshold = 80) => {
     if (!container) return;
 
     const handleTouchStart = (e) => {
-      if (window.scrollY === 0) {
+      // Check if container is scrolled to top
+      if (container.scrollTop === 0) {
         startY.current = e.touches[0].clientY;
         isPulling.current = true;
         pullDistance.current = 0;
@@ -29,12 +30,20 @@ export const usePullToRefresh = (onRefresh, threshold = 80) => {
     const handleTouchMove = (e) => {
       if (!isPulling.current) return;
 
+      // Only allow pull-to-refresh when at top
+      if (container.scrollTop > 0) {
+        isPulling.current = false;
+        pullDistance.current = 0;
+        container.style.transform = '';
+        return;
+      }
+
       currentY.current = e.touches[0].clientY;
       pullDistance.current = currentY.current - startY.current;
 
-      if (pullDistance.current > 0 && window.scrollY === 0) {
+      if (pullDistance.current > 0) {
         e.preventDefault();
-        container.style.transform = `translateY(${Math.min(pullDistance.current, threshold)}px)`;
+        container.style.transform = `translateY(${Math.min(pullDistance.current, threshold * 1.5)}px)`;
       }
     };
 
@@ -42,9 +51,11 @@ export const usePullToRefresh = (onRefresh, threshold = 80) => {
       if (!isPulling.current) return;
 
       isPulling.current = false;
+      const distance = pullDistance.current;
+      pullDistance.current = 0;
       container.style.transform = '';
 
-      if (pullDistance.current >= threshold && !isRefreshing) {
+      if (distance >= threshold && !isRefreshing) {
         setIsRefreshing(true);
         try {
           await onRefresh();
@@ -52,8 +63,6 @@ export const usePullToRefresh = (onRefresh, threshold = 80) => {
           setIsRefreshing(false);
         }
       }
-
-      pullDistance.current = 0;
     };
 
     container.addEventListener('touchstart', handleTouchStart, { passive: false });
