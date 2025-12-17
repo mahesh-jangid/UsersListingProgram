@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback, memo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, CircularProgress, Button, Typography } from '@mui/material';
+import { Box, CircularProgress, Button, Typography, Alert } from '@mui/material';
 import UserCard from 'components/UserCard';
 import SearchInput from 'components/SearchInput';
 import { useThrottle } from 'hooks/useThrottle';
@@ -10,11 +10,12 @@ import { bookmarkUserThunk, unbookmarkUserThunk } from 'thunks/usersThunks';
 
 const UsersTab = () => {
   const dispatch = useDispatch();
-  const { users, bookmarkedUsers, loading, loadingMore, refreshing, lastUserId } = useSelector(
+  const { users, bookmarkedUsers, loading, loadingMore, refreshing, lastUserId, loadMoreError } = useSelector(
     (state) => state.users
   );
   const [searchQuery, setSearchQuery] = useState('');
   const scrollContainerRef = useRef(null);
+  const retryTimeoutRef = useRef(null);
 
   const bookmarkedUserIds = useMemo(
     () => new Set(bookmarkedUsers.map((user) => user.id)),
@@ -86,11 +87,47 @@ const UsersTab = () => {
       !loadingMore &&
       !loading &&
       lastUserId > 0 &&
-      !throttledSearchQuery.trim()
+      !throttledSearchQuery.trim() &&
+      !loadMoreError
     ) {
       dispatch(loadMoreUsersThunk(lastUserId));
     }
-  }, [loadingMore, loading, lastUserId, throttledSearchQuery, dispatch]);
+  }, [loadingMore, loading, lastUserId, throttledSearchQuery, loadMoreError, dispatch]);
+
+  // Auto-retry when network is restored (only for network errors)
+  useEffect(() => {
+    const isNetworkError = loadMoreError && loadMoreError.toLowerCase().includes('network');
+    if (isNetworkError && lastUserId > 0) {
+      const handleOnline = () => {
+        // Clear any existing retry timeout
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+        // Retry after a short delay to ensure network is stable
+        retryTimeoutRef.current = setTimeout(() => {
+          if (typeof navigator !== 'undefined' && navigator.onLine && !loadingMore && !loading) {
+            dispatch(loadMoreUsersThunk(lastUserId));
+          }
+        }, 1000);
+      };
+
+      window.addEventListener('online', handleOnline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+      };
+    }
+  }, [loadMoreError, lastUserId, loadingMore, loading, dispatch]);
+
+  // Manual retry handler
+  const handleRetry = useCallback(() => {
+    if (lastUserId > 0 && !loadingMore && !loading) {
+      dispatch(loadMoreUsersThunk(lastUserId));
+    }
+  }, [lastUserId, loadingMore, loading, dispatch]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -136,6 +173,27 @@ const UsersTab = () => {
         {loadingMore && (
           <Box sx={{ display: 'flex', justifyContent: 'center', padding: 2 }}>
             <CircularProgress size={24} />
+          </Box>
+        )}
+
+        {loadMoreError && !loadingMore && !throttledSearchQuery.trim() && (
+          <Box sx={{ padding: 2 }}>
+            <Alert 
+              severity="error" 
+              action={
+                <Button color="inherit" size="small" onClick={handleRetry}>
+                  Retry
+                </Button>
+              }
+              sx={{ marginBottom: 1 }}
+            >
+              {loadMoreError}
+            </Alert>
+            {loadMoreError.toLowerCase().includes('network') && typeof navigator !== 'undefined' && !navigator.onLine && (
+              <Typography variant="caption" color="text.secondary" align="center" display="block">
+                Waiting for network connection to auto-retry...
+              </Typography>
+            )}
           </Box>
         )}
       </Box>

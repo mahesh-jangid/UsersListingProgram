@@ -50,7 +50,12 @@ export const loadMoreUsers = (since) => {
       const lastUserId = users.length > 0 ? users[users.length - 1].id : 0;
       dispatch(loadMoreUsersSuccess(users, lastUserId));
     } catch (error) {
-      dispatch(loadMoreUsersFailure(error.message));
+      // Check if it's a network error
+      const isNetworkError = !error.response && (error.message === 'Network Error' || error.code === 'ERR_NETWORK' || !navigator.onLine);
+      const errorMessage = isNetworkError 
+        ? 'Network error. Please check your internet connection.'
+        : error.message || 'Failed to load more users';
+      dispatch(loadMoreUsersFailure(errorMessage));
     }
   };
 };

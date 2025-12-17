@@ -8,6 +8,7 @@ const initialState = {
   loadingMore: false,
   refreshing: false,
   error: null,
+  loadMoreError: null,
   lastUserId: 0,
   searchQuery: '',
 };
@@ -41,7 +42,7 @@ const usersReducer = (state = initialState, action) => {
       return {
         ...state,
         loadingMore: true,
-        error: null,
+        loadMoreError: null,
       };
 
     case USERS_ACTION_TYPES.LOAD_MORE_USERS_SUCCESS:
@@ -50,14 +51,14 @@ const usersReducer = (state = initialState, action) => {
         loadingMore: false,
         users: [...state.users, ...action.payload.users],
         lastUserId: action.payload.lastUserId,
-        error: null,
+        loadMoreError: null,
       };
 
     case USERS_ACTION_TYPES.LOAD_MORE_USERS_FAILURE:
       return {
         ...state,
         loadingMore: false,
-        error: action.payload,
+        loadMoreError: action.payload,
       };
 
     case USERS_ACTION_TYPES.REFRESH_USERS_REQUEST:
